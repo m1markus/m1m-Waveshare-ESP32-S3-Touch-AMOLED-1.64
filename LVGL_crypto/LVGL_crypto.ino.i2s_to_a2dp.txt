@@ -1,0 +1,74 @@
+
+#include "AudioTools.h"
+#include "BluetoothA2DPSource.h"
+
+// ---------- I2S input from Waveshare ----------
+static constexpr int ARGOVIA_PIN_I2S_BCLK = 26;
+static constexpr int ARGOVIA_PIN_I2S_WS   = 25;
+static constexpr int ARGOVIA_PIN_I2S_DIN  = 22;
+
+// AirPods Bluetooth name
+static const char *AIRPODS_NAME = "AirPodsMue19";
+
+I2SStream i2sInput;
+BluetoothA2DPSource a2dp;
+
+// A2DP requests PCM audio from this callback.
+int32_t getSoundData(uint8_t *data, int32_t byteCount) {
+  if (byteCount <= 0) {
+    return 0;
+  }
+
+  int32_t received = i2sInput.read(data, byteCount);
+
+  // Fill any short read with silence.
+  if (received < 0) {
+    received = 0;
+  }
+
+  if (received < byteCount) {
+    memset(data + received, 0, byteCount - received);
+  }
+
+  return byteCount;
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial.println();
+  Serial.println("ESP32 I2S to Bluetooth A2DP transmitter");
+
+  // Configure I2S as a clock slave.
+  auto cfg = i2sInput.defaultConfig(RX_MODE);
+
+  cfg.sample_rate = 44100;
+  cfg.channels = 2;
+  cfg.bits_per_sample = 16;
+
+  cfg.is_master = false;
+  cfg.pin_bck = ARGOVIA_PIN_I2S_BCLK;
+  cfg.pin_ws = ARGOVIA_PIN_I2S_WS;
+  cfg.pin_data = ARGOVIA_PIN_I2S_DIN;
+  cfg.pin_mck = -1;
+
+  cfg.buffer_count = 8;
+  cfg.buffer_size = 512;
+
+  if (!i2sInput.begin(cfg)) {
+    Serial.println("ERROR: I2S input initialization failed");
+    while (true) delay(1000);
+  }
+
+  Serial.println("I2S input ready.");
+  Serial.println("Waiting for AirPods...");
+
+  a2dp.set_data_callback(getSoundData);
+  a2dp.start(AIRPODS_NAME);
+}
+
+void loop() {
+  // A2DP and I2S are serviced by their respective tasks.
+  delay(1000);
+}

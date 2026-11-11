@@ -1,0 +1,80 @@
+
+
+#include "AudioTools.h"
+#include "AudioTools/AudioCodecs/CodecMP3Helix.h"
+#include "AudioTools/Disk/AudioSourceURL.h"
+#include "AudioTools/Communication/AudioHttp.h"
+
+// ---------- Wi-Fi ----------
+const char* WIFI_SSID = WIFI_SSID_VALUE;
+const char* WIFI_PASS = WIFI_PASSWORD_VALUE;
+
+// Radio Argovia MP3 stream
+const char *radioURLs[] = {
+  "https://stream.streambase.ch/argovia/mp3-192/direct/"
+};
+
+// ---------- I2S output to classic ESP32 ----------
+static constexpr int PIN_I2S_BCLK = 5;
+static constexpr int PIN_I2S_WS   = 6;
+static constexpr int PIN_I2S_DOUT = 7;
+
+ICYStream urlStream(WIFI_SSID, WIFI_PASS);
+AudioSourceURL source(urlStream, radioURLs, "audio/mp3");
+
+I2SStream i2s;
+MP3DecoderHelix decoder;
+AudioPlayer player(source, i2s, decoder);
+
+void printMetadata(MetaDataType type, const char *value, int length) {
+  Serial.print(toStr(type));
+  Serial.print(": ");
+  Serial.write(value, length);
+  Serial.println();
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial.println();
+  Serial.println("Argovia Wi-Fi audio transmitter");
+
+  AudioToolsLogger.begin(Serial, AudioToolsLogLevel::Info);
+
+  // Configure I2S as clock master.
+  auto cfg = i2s.defaultConfig(TX_MODE);
+
+  cfg.sample_rate = 44100;
+  cfg.channels = 2;
+  cfg.bits_per_sample = 16;
+
+  cfg.is_master = true;
+  cfg.pin_bck = PIN_I2S_BCLK;
+  cfg.pin_ws = PIN_I2S_WS;
+  cfg.pin_data = PIN_I2S_DOUT;
+  cfg.pin_mck = -1;
+
+  cfg.buffer_count = 8;
+  cfg.buffer_size = 512;
+
+  if (!i2s.begin(cfg)) {
+    Serial.println("ERROR: I2S initialization failed");
+    while (true) delay(1000);
+  }
+
+  player.setMetadataCallback(printMetadata);
+
+  if (!player.begin()) {
+    Serial.println("ERROR: Radio player initialization failed");
+    while (true) delay(1000);
+  }
+
+  Serial.println("Radio player started.");
+  Serial.println("I2S output: GPIO 5 / 6 / 7");
+}
+
+void loop() {
+  // Keep the decoder and I2S output supplied with audio.
+  player.copy();
+}
