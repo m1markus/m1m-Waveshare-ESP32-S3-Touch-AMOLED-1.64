@@ -6,14 +6,66 @@
  * Panel  : CO5300  280x456  (QSPI)
  * Touch  : FT3168 / FT6146
  * Driver : GFX Library for Arduino
- * LVGL   : 9.x
+ *
+ * Built with these library versions - install exactly these (LIBRARIES.md):
+ *   lvgl 9.4.0
+ *   GFX Library for Arduino 1.6.9
+ *   SensorLib 0.5.1
+ * ESP32 board package (esp32 by Espressif Systems): 3.1.0 or newer
+ * A wrong lvgl or board package stops the build in lv_conf.h (or below, if lv_conf.h is replaced), saying what to install.
  */
 
 #include <Arduino.h>
 #include <esp_log.h>
 #include <lvgl.h>
+
+/* The versions this project was built with (LIBRARIES.md), checked as it
+ * compiles, so a wrong one stops the build here and says what to install. */
+#if !defined(__ASSEMBLY__) && !defined(LW_VERSIONS_CHECKED) && defined(LVGL_VERSION_MAJOR)
+#define LW_VERSIONS_CHECKED 1
+#if LVGL_VERSION_MAJOR != 9 || LVGL_VERSION_MINOR < 4
+#if LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 0
+#error "Wrong lvgl version: lvgl 8.0 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 1
+#error "Wrong lvgl version: lvgl 8.1 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 2
+#error "Wrong lvgl version: lvgl 8.2 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 3
+#error "Wrong lvgl version: lvgl 8.3 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 4
+#error "Wrong lvgl version: lvgl 8.4 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 0
+#error "Wrong lvgl version: lvgl 9.0 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 1
+#error "Wrong lvgl version: lvgl 9.1 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 2
+#error "Wrong lvgl version: lvgl 9.2 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 3
+#error "Wrong lvgl version: lvgl 9.3 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#else
+#error "Wrong lvgl version: this project needs lvgl 9.4.0, and another version is installed. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#endif
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+#if __has_include(<esp_arduino_version.h>)
+#include <esp_arduino_version.h>
+#endif
+#if !defined(ESP_ARDUINO_VERSION_MAJOR) || ESP_ARDUINO_VERSION_MAJOR < 3
+#error "ESP32 board package too old: an esp32 2.x or older is installed, and this project needs 3.1.0 or newer. In the Arduino IDE: Tools > Board > Boards Manager, search for esp32 (by Espressif Systems), choose 3.1.0 or newer from the version drop-down beside Install, then click Install. README.md (Build) says what needs it."
+#elif ESP_ARDUINO_VERSION_MAJOR == 3 && ESP_ARDUINO_VERSION_MINOR == 0
+#error "ESP32 board package too old: esp32 3.0 is installed, and this project needs 3.1.0 or newer. In the Arduino IDE: Tools > Board > Boards Manager, search for esp32 (by Espressif Systems), choose 3.1.0 or newer from the version drop-down beside Install, then click Install. README.md (Build) says what needs it."
+#endif
+#endif
+#endif
+#if defined(LVGL_VERSION_MAJOR) && LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR > 4
+#define LW_STR2(x) #x
+#define LW_STR(x) LW_STR2(x)
+#pragma message("LCD Wizard: lvgl " LW_STR(LVGL_VERSION_MAJOR) "." LW_STR(LVGL_VERSION_MINOR) "." LW_STR(LVGL_VERSION_PATCH) " is installed. This project was built with lvgl 9.4.0 and has not been tried on a newer one. If the build fails, install lvgl 9.4.0: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install.")
+#endif
+
 #include "lcd_pins.h"
 #include "src/ui/ui.h"
+#include "src/ui/ui_fs.h"
 #include "hardware.h"
 #include "app_logic.h"
 #include "touch.h"
@@ -22,6 +74,15 @@
 #if !__has_include(<Arduino_OLED.h>)
 #error "GFX Library for Arduino is older than 1.6.1, and this panel needs a newer one: update it to 1.6.9 in the Library Manager (or remove the old copy from your sketchbook's libraries folder). See LIBRARIES.md."
 #endif
+
+ #include  <WiFi.h> 
+ #include  <HTTPClient.h> 
+ #include  <WiFiClientSecure.h> 
+ #include  <ArduinoJson.h>
+
+ #include "../env.h"
+
+ QueueHandle_t uiCommandQueue;
 
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(
     LCD_CS, LCD_SCK, LCD_D0, LCD_D1, LCD_D2, LCD_D3);
@@ -43,6 +104,58 @@ static lv_display_t *display = NULL;
 static uint8_t backlight_level = LCD_BL_DEFAULT;
 static bool backlight_told = false;   // whether the panel has been sent a level yet
 uint8_t backlight_get(void) { return backlight_level; }
+
+const char* WIFI_SSID = WIFI_SSID_VALUE;
+const char* WIFI_PASS = WIFI_PASSWORD_VALUE;
+
+const char* API_URL = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+
+void connectWiFi()
+{
+  Serial.println();
+  Serial.print("Connecting to Wi-Fi: ");
+  Serial.println(WIFI_SSID);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  int retryCount = 0;
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+
+    retryCount++;
+
+    if (retryCount > 40) {
+      Serial.println();
+      Serial.println("Wi-Fi connection failed.");
+      return;
+    }
+  }
+
+  Serial.println();
+  Serial.println("Wi-Fi connected.");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+#include <time.h>
+
+void initNTP()
+{
+    // Zurich timezone (CET/CEST), automatic daylight saving
+    const char* timezoneZurich = "CET-1CEST,M3.5.0/2,M10.5.0/3";
+    const char* timezone = timezoneZurich;
+
+    // Initialize NTP servers
+    configTzTime(timezone,
+                 "pool.ntp.org",
+                 "time.google.com",
+                 "time.cloudflare.com");
+
+    Serial.println("NTP initialized");
+}
 
 void backlight_set(uint8_t percent)
 {
@@ -97,6 +210,10 @@ void setup()
     #endif
     delay(100);
     Serial.println("MyUI starting...");
+
+    connectWiFi();
+    initNTP();
+
     if (!psramFound()) {
         Serial.println("PSRAM: none found, though this design is set for 8 MB of octal PSRAM. Check the module has it, and that it is on and octal in the board's settings (Arduino IDE: Tools > PSRAM).");
     }
@@ -112,6 +229,7 @@ void setup()
 
     // ---- LVGL ----
     lv_init();
+    lw_lvgl_log_start();     // what LVGL says, if a check fails (lw_assert.cpp)
     lv_tick_set_cb(lw_tick_ms);
 
     size_t draw_buf_size = DRAW_BUF_SIZE;
@@ -141,14 +259,154 @@ void setup()
     // ---- peripherals and discrete I/O ----
     hw_init();
 
+    // ---- asset filesystem (must be mounted before the UI is built) ----
+    if (!ui_fs_init()) Serial.println("images will not load");
+
     ui_init();
     app_init();
     Serial.println("UI ready");
+
+    uiCommandQueue = xQueueCreate(1, sizeof(UiCommandItem));
+
+    xTaskCreate(vTaskBinance,       /* Function that implements the task. */
+                "vTaskBinance",     /* Text name for the task. */
+                8192,               /* Stack size in words, not bytes. */
+                (void *) 0,         /* Parameter passed into the task. */
+                tskIDLE_PRIORITY,   /* Priority at which the task is created. */
+                NULL); 
 }
 
-void loop()
+void get_first_part(const char *input, unsigned char char_separator, char *output)
 {
+    const char *dot = strchr(input, char_separator);
+
+    if (dot != NULL) {
+        size_t len = dot - input;
+        strncpy(output, input, len);
+        output[len] = '\0';
+    } else {
+        strcpy(output, input);
+    }
+}
+
+void get_current_time(char *output, int output_size) {
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo)) {
+        strftime(output, output_size,
+                 "%d.%m.%Y %H:%M:%S",
+                 &timeinfo);
+    } else {
+        Serial.println("Failed to get time");
+    }
+}
+
+void httpGetBtcQuoteFromBinance() {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Wi-Fi is not connected.");
+    return;
+  }
+
+  Serial.println();
+  Serial.println("Starting HTTP GET request...");
+  Serial.print("URL: ");
+  Serial.println(API_URL);
+  Serial.println();
+
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+  bool beginResult = http.begin(client, API_URL);
+
+  if (!beginResult) {
+    Serial.println("HTTPClient begin failed.");
+    return;
+  }
+
+  http.setTimeout(10000);
+  http.addHeader("Content-Type", "application/json");
+
+  int httpCode = http.GET();
+
+  Serial.print("HTTP status code: ");
+  Serial.println(httpCode);
+
+  if (httpCode == HTTP_CODE_OK) {
+    String payload = http.getString();
+
+    Serial.println("---- Response Body ----");
+    Serial.println(payload);
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, payload);
+
+    if (error) {
+        Serial.print("Response JSON parse failed: ");
+        Serial.println(error.c_str());
+        return;
+    }
+
+    const char* btcPriceUsd = doc["price"];
+    char btcPriceRounded[50];
+    get_first_part(btcPriceUsd, '.', btcPriceRounded);
+
+    Serial.printf("BTC USD price: %s", btcPriceRounded);
+    Serial.println("");
+
+    char currTime[32];
+    get_current_time(currTime, sizeof(currTime));
+
+    UiCommandItem uiCommandItem;
+    uiCommandItem.uiCommand = 1;
+    snprintf(uiCommandItem.price, sizeof(uiCommandItem.price), "USD %s", btcPriceRounded);
+    snprintf(uiCommandItem.timeAt, sizeof(uiCommandItem.timeAt), "%s", currTime);
+
+    // overwrite a possible existing queue entry
+    xQueueGenericSend(uiCommandQueue, &uiCommandItem, 0, queueOVERWRITE);
+
+  } else {
+    Serial.print("HTTP POST failed. Error: ");
+    Serial.println(http.errorToString(httpCode));
+  }
+
+  http.end();
+}
+
+void vTaskBinance(void * notUsed)
+{
+    const TickType_t xDelay = 15000 / portTICK_PERIOD_MS;
+    for( ;; ) {
+        /* Task code goes here. */
+
+        Serial.println("Query Binance API");
+        httpGetBtcQuoteFromBinance();
+        vTaskDelay(xDelay);
+    }
+}
+
+void loop() {
     app_poll();
     lv_timer_handler();
     delay(5);
+
+    UiCommandItem receivedItem;
+
+    if (xQueueReceive(uiCommandQueue, &receivedItem, 0) == pdTRUE) {
+        // Item received successfully
+        Serial.println("UI queue consumer...");
+        Serial.println(receivedItem.uiCommand);
+        Serial.println(receivedItem.price);
+        Serial.println(receivedItem.timeAt);
+
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s", receivedItem.price);
+        if (ui_Label1 != NULL) {
+            lv_label_set_text(ui_Label1, buf);
+        }
+
+        snprintf(buf, sizeof(buf), "last updated at %s", receivedItem.timeAt);
+        if (ui_Label2 != NULL) {
+            lv_label_set_text(ui_Label2, buf);
+        }
+    }
 }

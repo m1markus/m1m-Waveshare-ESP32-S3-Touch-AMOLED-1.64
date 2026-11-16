@@ -4,6 +4,9 @@
 #include "lcd_pins.h"
 #include "lw_math.h"
 
+// ---- extra bus instances ----
+SPIClass SPI1(HSPI);
+
 // ---- device instances ----
 SensorQMI8658 per_IMU;
 
@@ -52,8 +55,7 @@ void hw_init_early(void)
     // I2C (GPIO 47 / 48)
     Wire.begin(47, 48, 400000);
     Wire.setTimeout(5);   // the Stream timeout: a refused read is not waited for
-    // SPI (TF card)
-    SPI.begin(41, 40, 39, -1);
+    // SPI (TF card): nothing switched on on it, so not begun
 }
 
 void hw_init(void)

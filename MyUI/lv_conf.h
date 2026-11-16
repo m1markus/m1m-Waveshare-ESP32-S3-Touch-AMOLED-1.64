@@ -3,7 +3,7 @@
  *
  * Place next to lvgl/ (or in your project root with LV_CONF_PATH set) and
  * make sure LV_CONF_INCLUDE_SIMPLE or the build flag points at it.
- * Targets LVGL 9.x.
+ * Targets LVGL 9.4.0.
  */
 
 #ifndef LV_CONF_H
@@ -11,6 +11,45 @@
 
 #ifndef __ASSEMBLY__
 #include <stdint.h>
+#endif
+
+/* The versions this project was built with (LIBRARIES.md), checked as it
+ * compiles, so a wrong one stops the build here and says what to install. */
+#if !defined(__ASSEMBLY__) && !defined(LW_VERSIONS_CHECKED) && defined(LVGL_VERSION_MAJOR)
+#define LW_VERSIONS_CHECKED 1
+#if LVGL_VERSION_MAJOR != 9 || LVGL_VERSION_MINOR < 4
+#if LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 0
+#error "Wrong lvgl version: lvgl 8.0 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 1
+#error "Wrong lvgl version: lvgl 8.1 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 2
+#error "Wrong lvgl version: lvgl 8.2 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 3
+#error "Wrong lvgl version: lvgl 8.3 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 8 && LVGL_VERSION_MINOR == 4
+#error "Wrong lvgl version: lvgl 8.4 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 0
+#error "Wrong lvgl version: lvgl 9.0 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 1
+#error "Wrong lvgl version: lvgl 9.1 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 2
+#error "Wrong lvgl version: lvgl 9.2 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#elif LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 3
+#error "Wrong lvgl version: lvgl 9.3 is installed, and this project needs lvgl 9.4.0. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#else
+#error "Wrong lvgl version: this project needs lvgl 9.4.0, and another version is installed. In the Arduino IDE: Sketch > Include Library > Manage Libraries, search for lvgl, choose 9.4.0 from the version drop-down beside Install, then click Install. LIBRARIES.md lists every library this project needs, with its version."
+#endif
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+#if __has_include(<esp_arduino_version.h>)
+#include <esp_arduino_version.h>
+#endif
+#if !defined(ESP_ARDUINO_VERSION_MAJOR) || ESP_ARDUINO_VERSION_MAJOR < 3
+#error "ESP32 board package too old: an esp32 2.x or older is installed, and this project needs 3.1.0 or newer. In the Arduino IDE: Tools > Board > Boards Manager, search for esp32 (by Espressif Systems), choose 3.1.0 or newer from the version drop-down beside Install, then click Install. README.md (Build) says what needs it."
+#elif ESP_ARDUINO_VERSION_MAJOR == 3 && ESP_ARDUINO_VERSION_MINOR == 0
+#error "ESP32 board package too old: esp32 3.0 is installed, and this project needs 3.1.0 or newer. In the Arduino IDE: Tools > Board > Boards Manager, search for esp32 (by Espressif Systems), choose 3.1.0 or newer from the version drop-down beside Install, then click Install. README.md (Build) says what needs it."
+#endif
+#endif
 #endif
 
 #define LV_CONF_SKIP 0
@@ -23,6 +62,7 @@
 #define LV_USE_STDLIB_STRING   LV_STDLIB_BUILTIN
 #define LV_USE_STDLIB_SPRINTF  LV_STDLIB_BUILTIN
 #define LV_MEM_SIZE (128U * 1024U)
+#define LV_IMAGE_HEADER_CACHE_DEF_CNT 8   /* filesystem pictures: one file open a draw, not two */
 #define LV_MEM_POOL_INCLUDE <esp32-hal-psram.h>   /* the pool lives in PSRAM */
 #define LV_MEM_POOL_ALLOC   ps_malloc
 
@@ -33,8 +73,25 @@
 #define LV_TICK_CUSTOM 0        /* the sketch calls lv_tick_set_cb(millis) */
 
 /*==================== FEATURES ====================*/
-#define LV_USE_LOG 0
+#define LV_USE_LOG 1
+#define LV_LOG_LEVEL LV_LOG_LEVEL_ERROR   /* kept by lw_assert, printed only on a failed check */
+#define LV_LOG_PRINTF 0
+#define LV_LOG_USE_TIMESTAMP 0
+#define LV_LOG_USE_FILE_LINE 0
 #define LV_USE_ASSERT_NULL 1
+/* A failed check restarts the board with a line on serial saying where, and
+ * what LVGL said, in place of LVGL's silent while(1). */
+#ifndef __ASSEMBLY__
+#ifdef __cplusplus
+extern "C" {
+#endif
+void lw_lvgl_fail(const char * file, int line);
+void lw_lvgl_log_start(void);
+#ifdef __cplusplus
+}
+#endif
+#endif
+#define LV_ASSERT_HANDLER lw_lvgl_fail(__FILE__, __LINE__);
 #define LV_USE_PERF_MONITOR 0
 #define LV_USE_MEM_MONITOR 0
 #define LV_USE_DRAW_SW_ASM LV_DRAW_SW_ASM_NONE
@@ -42,17 +99,17 @@
 /*==================== FONTS ====================*/
 #define LV_FONT_MONTSERRAT_8 0
 #define LV_FONT_MONTSERRAT_10 0
-#define LV_FONT_MONTSERRAT_12 1
+#define LV_FONT_MONTSERRAT_12 0
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 0
 #define LV_FONT_MONTSERRAT_18 0
 #define LV_FONT_MONTSERRAT_20 0
 #define LV_FONT_MONTSERRAT_22 0
-#define LV_FONT_MONTSERRAT_24 1
+#define LV_FONT_MONTSERRAT_24 0
 #define LV_FONT_MONTSERRAT_26 0
 #define LV_FONT_MONTSERRAT_28 0
 #define LV_FONT_MONTSERRAT_30 0
-#define LV_FONT_MONTSERRAT_32 1
+#define LV_FONT_MONTSERRAT_32 0
 #define LV_FONT_MONTSERRAT_34 0
 #define LV_FONT_MONTSERRAT_36 0
 #define LV_FONT_MONTSERRAT_38 0
@@ -62,20 +119,23 @@
 #define LV_FONT_MONTSERRAT_46 0
 #define LV_FONT_MONTSERRAT_48 0
 #define LV_FONT_DEFAULT &lv_font_montserrat_14
+/* The fonts in src/ui/fonts/ are RLE-compressed. Without this they still
+ * compile - and then every glyph draws blank. */
+#define LV_USE_FONT_COMPRESSED 1
 
 /*==================== WIDGETS ====================*/
 #define LV_USE_ANIMIMG 0
-#define LV_USE_ARC 1
+#define LV_USE_ARC 0
 #define LV_USE_ARCLABEL 0
-#define LV_USE_BAR 1
-#define LV_USE_BUTTON 1
+#define LV_USE_BAR 0
+#define LV_USE_BUTTON 0
 #define LV_USE_BUTTONMATRIX 0
 #define LV_USE_CALENDAR 0
-#define LV_USE_CANVAS 0
+#define LV_USE_CANVAS 1
 #define LV_USE_CHART 0
 #define LV_USE_CHECKBOX 0
 #define LV_USE_DROPDOWN 0
-#define LV_USE_IMAGE 0
+#define LV_USE_IMAGE 1
 #define LV_USE_IMAGEBUTTON 0
 #define LV_USE_KEYBOARD 0
 #define LV_USE_LABEL 1
@@ -86,7 +146,7 @@
 #define LV_USE_MSGBOX 0
 #define LV_USE_ROLLER 0
 #define LV_USE_SCALE 0
-#define LV_USE_SLIDER 1
+#define LV_USE_SLIDER 0
 #define LV_USE_SPAN 0
 #define LV_USE_SPINBOX 0
 #define LV_USE_SPINNER 0
@@ -100,7 +160,7 @@
 
 /*==================== THEMES ====================*/
 #define LV_USE_THEME_DEFAULT 1
-#define LV_THEME_DEFAULT_DARK 1
+#define LV_THEME_DEFAULT_DARK 0
 #define LV_THEME_DEFAULT_GROW 1
 #define LV_THEME_DEFAULT_TRANSITION_TIME 80
 

@@ -47,6 +47,8 @@ Arduino lib directory: /Users/mue/Documents/Arduino/libraries
 
 [LVGL 8.4 docu](https://lvgl.io/docs/open/8.4/)
 
+[FreeRTOS Documentation](https://www.freertos.org/Documentation/00-Overview)
+
 ### Arduino CLI
 
 #### Compile
@@ -66,6 +68,25 @@ arduino-cli upload \
   --fqbn esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,PartitionScheme=custom,CDCOnBoot=cdc \
   --input-dir ./build .
   ```
+
+#### upload SPIFFS resources (over PlatformIO)
+Use the VSCode PlatformIO terminal:
+```bash
+pio run --target uploadfs
+```
+
+#### Important pio commands
+
+| what | command |
+| :-- | :-- |
+| Compile source code	| pio run
+| Clean previous build	| pio run --target clean
+| Compile and build firmware .bin	| pio run
+| Upload firmware .bin to ESP32	| pio run --target upload
+| Build SPIFFS filesystem .bin	| pio run --target buildfs
+| Upload SPIFFS .bin to ESP32	| pio run --target uploadfs
+| Open serial monitor	| pio device monitor
+| Show connected serial devices	| pio device list
 
 ### Per project lvgl config file
 

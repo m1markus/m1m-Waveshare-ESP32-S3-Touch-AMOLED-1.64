@@ -14,6 +14,12 @@ void app_poll(void);          // call from loop()
 void vars_update(bool force);
 void bindings_apply(void);
 
+struct UiCommandItem {
+    int uiCommand;
+    char price[32];
+    char timeAt[32];
+};
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

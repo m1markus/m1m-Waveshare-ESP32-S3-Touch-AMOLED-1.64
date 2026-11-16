@@ -15,21 +15,16 @@ extern "C" {
 
 #include "ui_helpers.h"
 #include "ui_events.h"
+#include "ui_imgmem.h"
+#include "lw_canvas.h"
 
-// ---- Screen1 ----
-extern lv_obj_t * ui_Screen1;
-extern lv_obj_t * ui_Title;
-extern lv_obj_t * ui_Hint;
-extern lv_obj_t * ui_Card;
-extern lv_obj_t * ui_Gauge;
-extern lv_obj_t * ui_Readout;
-extern lv_obj_t * ui_Status;
-extern lv_obj_t * ui_Dial;
-extern lv_obj_t * ui_Go;
-extern lv_obj_t * ui_Go_label;
-void ui_Screen1_screen_init(void);
-
-void ui_event_Go(lv_event_t * e);
+// ---- Bitcoin_Screen_1 ----
+extern lv_obj_t * ui_Bitcoin_Screen_1;
+extern lv_obj_t * ui_Label1;
+extern lv_obj_t * ui_Label2;
+extern lv_obj_t * ui_Canvas1;
+extern lv_obj_t * ui_Image1;
+void ui_Bitcoin_Screen_1_screen_init(void);
 
 void ui_init(void);
 

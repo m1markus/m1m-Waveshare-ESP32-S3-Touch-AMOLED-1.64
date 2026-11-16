@@ -2,23 +2,18 @@
 
 #include "ui.h"
 
-lv_obj_t * ui_Screen1;
-lv_obj_t * ui_Title;
-lv_obj_t * ui_Hint;
-lv_obj_t * ui_Card;
-lv_obj_t * ui_Gauge;
-lv_obj_t * ui_Readout;
-lv_obj_t * ui_Status;
-lv_obj_t * ui_Dial;
-lv_obj_t * ui_Go;
-lv_obj_t * ui_Go_label;
+lv_obj_t * ui_Bitcoin_Screen_1;
+lv_obj_t * ui_Label1;
+lv_obj_t * ui_Label2;
+lv_obj_t * ui_Canvas1;
+lv_obj_t * ui_Image1;
 
 void ui_init(void)
 {
     lv_display_t * dispp = lv_display_get_default();
-    lv_theme_t * theme = lv_theme_default_init(dispp, lv_color_hex(0x2196F3), lv_color_hex(0xEF6C00), true, &lv_font_montserrat_14);
+    lv_theme_t * theme = lv_theme_default_init(dispp, lv_color_hex(0x2196F3), lv_color_hex(0xEF6C00), false, &lv_font_montserrat_14);
     lv_display_set_theme(dispp, theme);
 
-    ui_Screen1_screen_init();
-    lv_screen_load(ui_Screen1);
+    ui_Bitcoin_Screen_1_screen_init();
+    lv_screen_load(ui_Bitcoin_Screen_1);
 }

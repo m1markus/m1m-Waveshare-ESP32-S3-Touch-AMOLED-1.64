@@ -9,6 +9,9 @@ extern "C" {
 
 #include "lvgl.h"
 
+// ---- fonts from the LCD Wizard library (src/ui/fonts/) ----
+LV_FONT_DECLARE(ui_font_montserrat_bold_24);
+
 #define _UI_MODIFY_FLAG_ADD    0
 #define _UI_MODIFY_FLAG_REMOVE 1
 #define _UI_MODIFY_FLAG_TOGGLE 2

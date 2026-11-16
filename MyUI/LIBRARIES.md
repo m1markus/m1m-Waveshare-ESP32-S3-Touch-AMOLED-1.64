@@ -1,7 +1,7 @@
 # Libraries for MyUI
 
 Everything the generated sketch needs, with the exact names to search for.
-Generated 2026-11-08 16:39.
+Generated 2026-11-15 12:06.
 
 ## Install these
 
@@ -24,6 +24,7 @@ Bundled with the board core - nothing to install.
 
 - **Wire** - FT3168 / FT6146 is read directly by the generated sketch - no driver library needed
 - **SD** - "SDCard" - bundled with the core
+- **SPIFFS** - Holds the image assets - bundled with the core. Upload data/ separately (see data/README.md)
 - **SPI** - SPI bus - bundled with the core
 
 ## Installing

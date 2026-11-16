@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 
+unsigned long counter = 1;
+
 void vars_update(bool force)
 {
     (void)force;
@@ -24,17 +26,11 @@ static inline bool lw_text_is(const char * cur, const char * pre, const char * s
 
 void bindings_apply(void)
 {
-    char buf[66];   // a number and the longest prefix and postfix
-    (void)buf;
-    if (ui_Gauge != NULL && ui_Dial != NULL) {
-        lv_arc_set_value(ui_Gauge, (int32_t)lroundf((float)lv_slider_get_value(ui_Dial)));
-    }
-    if (ui_Readout != NULL && ui_Dial != NULL) {
-        snprintf(buf, sizeof(buf), "%d %%", (int)((float)lv_slider_get_value(ui_Dial)));
-        {
-            const char * cur = lv_label_get_text(ui_Readout);
-            if (!cur || strcmp(cur, buf) != 0) lv_label_set_text(ui_Readout, buf);
-        }
+    char buf[64];
+    snprintf(buf, sizeof(buf), "USD %ld", counter++);
+
+    if (ui_Label1 != NULL) {
+        //lv_label_set_text(ui_Label1, buf);
     }
 }
 
