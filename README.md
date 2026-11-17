@@ -130,6 +130,16 @@ Waveshare ESP32-S3-Touch-AMOLED-1.64
 
 [LCD Wizard](https://app.lcdwizard.com/app/) (login with google id)
 
+After generating the source and replacing all files, add the following libdeps in platformio.ini:
+```
+lib_deps =
+    bblanchon/ArduinoJson@7.4.3
+	... // lcdwizard
+    lvgl/lvgl@9.4.0
+    moononournation/GFX Library for Arduino@1.6.9
+    lewisxhe/SensorLib@0.5.1
+```
+
 [EEZ Studio](https://www.envox.eu/studio/studio-introduction/)
 
 [SquarLine Studio](https://squareline.io/)

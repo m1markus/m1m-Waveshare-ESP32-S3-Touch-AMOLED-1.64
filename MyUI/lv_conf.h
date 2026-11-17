@@ -102,7 +102,7 @@ void lw_lvgl_log_start(void);
 #define LV_FONT_MONTSERRAT_12 0
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 0
-#define LV_FONT_MONTSERRAT_18 0
+#define LV_FONT_MONTSERRAT_18 1
 #define LV_FONT_MONTSERRAT_20 0
 #define LV_FONT_MONTSERRAT_22 0
 #define LV_FONT_MONTSERRAT_24 0
@@ -131,7 +131,7 @@ void lw_lvgl_log_start(void);
 #define LV_USE_BUTTON 0
 #define LV_USE_BUTTONMATRIX 0
 #define LV_USE_CALENDAR 0
-#define LV_USE_CANVAS 1
+#define LV_USE_CANVAS 0
 #define LV_USE_CHART 0
 #define LV_USE_CHECKBOX 0
 #define LV_USE_DROPDOWN 0

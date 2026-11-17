@@ -6,7 +6,7 @@ embedded in firmware and shared, as long as these notices go with them.
 
 | File | Font | Size | Licence | Original |
 |---|---|---|---|---|
-| `ui_font_montserrat_bold_24.c` | Montserrat Bold | 24 px | SIL Open Font License 1.1 | Montserrat by Julieta Ulanovsky, copyright The Montserrat Project Authors - https://fonts.google.com/specimen/Montserrat |
+| `ui_font_montserrat_bold_32.c` | Montserrat Bold | 32 px | SIL Open Font License 1.1 | Montserrat by Julieta Ulanovsky, copyright The Montserrat Project Authors - https://fonts.google.com/specimen/Montserrat |
 
 ## Montserrat by Julieta Ulanovsky, copyright The Montserrat Project Authors
 

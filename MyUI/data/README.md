@@ -7,9 +7,9 @@ no separate conversion step. Everything in this folder goes onto the board.
 
 | File | Source | Size | Format | Referenced as |
 |---|---|---|---|---|
-| `bitcoin_logo.bin` | bitcoin-logo.svg | 128x128 | RGB565A8 | `S:/bitcoin_logo.bin` |
+| `bitcoin_logo.bin` | bitcoin-logo.svg | 112x112 | RGB565A8 | `S:/bitcoin_logo.bin` |
 
-Total: **48.0 KB** of roughly 3.88 MB available.
+Total: **36.8 KB** of roughly 3.88 MB available.
 
 ## Uploading
 

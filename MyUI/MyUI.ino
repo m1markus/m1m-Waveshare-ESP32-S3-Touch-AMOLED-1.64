@@ -67,22 +67,19 @@
 #include "src/ui/ui.h"
 #include "src/ui/ui_fs.h"
 #include "hardware.h"
-#include "app_logic.h"
 #include "touch.h"
+
+// Your own code (File > Project settings > Your own code): write these three in
+// a .cpp file of your own beside this sketch. lw_user.cpp has empty ones for when
+// you have not, and the linker takes yours when you have.
+void user_pre_ui_setup(void);
+void user_setup(void);
+void user_loop(void);
 
 #include <Arduino_GFX_Library.h>
 #if !__has_include(<Arduino_OLED.h>)
 #error "GFX Library for Arduino is older than 1.6.1, and this panel needs a newer one: update it to 1.6.9 in the Library Manager (or remove the old copy from your sketchbook's libraries folder). See LIBRARIES.md."
 #endif
-
- #include  <WiFi.h> 
- #include  <HTTPClient.h> 
- #include  <WiFiClientSecure.h> 
- #include  <ArduinoJson.h>
-
- #include "../env.h"
-
- QueueHandle_t uiCommandQueue;
 
 Arduino_DataBus *bus = new Arduino_ESP32QSPI(
     LCD_CS, LCD_SCK, LCD_D0, LCD_D1, LCD_D2, LCD_D3);
@@ -104,58 +101,6 @@ static lv_display_t *display = NULL;
 static uint8_t backlight_level = LCD_BL_DEFAULT;
 static bool backlight_told = false;   // whether the panel has been sent a level yet
 uint8_t backlight_get(void) { return backlight_level; }
-
-const char* WIFI_SSID = WIFI_SSID_VALUE;
-const char* WIFI_PASS = WIFI_PASSWORD_VALUE;
-
-const char* API_URL = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
-
-void connectWiFi()
-{
-  Serial.println();
-  Serial.print("Connecting to Wi-Fi: ");
-  Serial.println(WIFI_SSID);
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-
-  int retryCount = 0;
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-
-    retryCount++;
-
-    if (retryCount > 40) {
-      Serial.println();
-      Serial.println("Wi-Fi connection failed.");
-      return;
-    }
-  }
-
-  Serial.println();
-  Serial.println("Wi-Fi connected.");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-}
-
-#include <time.h>
-
-void initNTP()
-{
-    // Zurich timezone (CET/CEST), automatic daylight saving
-    const char* timezoneZurich = "CET-1CEST,M3.5.0/2,M10.5.0/3";
-    const char* timezone = timezoneZurich;
-
-    // Initialize NTP servers
-    configTzTime(timezone,
-                 "pool.ntp.org",
-                 "time.google.com",
-                 "time.cloudflare.com");
-
-    Serial.println("NTP initialized");
-}
 
 void backlight_set(uint8_t percent)
 {
@@ -210,13 +155,14 @@ void setup()
     #endif
     delay(100);
     Serial.println("MyUI starting...");
-
-    connectWiFi();
-    initNTP();
-
     if (!psramFound()) {
         Serial.println("PSRAM: none found, though this design is set for 8 MB of octal PSRAM. Check the module has it, and that it is on and octal in the board's settings (Arduino IDE: Tools > PSRAM).");
     }
+
+    // Your own code: hardware that must be set up before the screen starts. The
+    // board is powered; the panel, touch and LVGL are not started yet, and the
+    // screen stays dark while this runs: never wait for Wi-Fi here.
+    user_pre_ui_setup();   // yours, or the empty one in lw_user.cpp
 
     // ---- panel ----
     if (!gfx->begin()) {
@@ -263,150 +209,14 @@ void setup()
     if (!ui_fs_init()) Serial.println("images will not load");
 
     ui_init();
-    app_init();
+    user_setup();   // yours, or the empty one in lw_user.cpp
     Serial.println("UI ready");
-
-    uiCommandQueue = xQueueCreate(1, sizeof(UiCommandItem));
-
-    xTaskCreate(vTaskBinance,       /* Function that implements the task. */
-                "vTaskBinance",     /* Text name for the task. */
-                8192,               /* Stack size in words, not bytes. */
-                (void *) 0,         /* Parameter passed into the task. */
-                tskIDLE_PRIORITY,   /* Priority at which the task is created. */
-                NULL); 
 }
 
-void get_first_part(const char *input, unsigned char char_separator, char *output)
+void loop()
 {
-    const char *dot = strchr(input, char_separator);
-
-    if (dot != NULL) {
-        size_t len = dot - input;
-        strncpy(output, input, len);
-        output[len] = '\0';
-    } else {
-        strcpy(output, input);
-    }
-}
-
-void get_current_time(char *output, int output_size) {
-    struct tm timeinfo;
-    if (getLocalTime(&timeinfo)) {
-        strftime(output, output_size,
-                 "%d.%m.%Y %H:%M:%S",
-                 &timeinfo);
-    } else {
-        Serial.println("Failed to get time");
-    }
-}
-
-void httpGetBtcQuoteFromBinance() {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("Wi-Fi is not connected.");
-    return;
-  }
-
-  Serial.println();
-  Serial.println("Starting HTTP GET request...");
-  Serial.print("URL: ");
-  Serial.println(API_URL);
-  Serial.println();
-
-  WiFiClientSecure client;
-  client.setInsecure();
-
-  HTTPClient http;
-  bool beginResult = http.begin(client, API_URL);
-
-  if (!beginResult) {
-    Serial.println("HTTPClient begin failed.");
-    return;
-  }
-
-  http.setTimeout(10000);
-  http.addHeader("Content-Type", "application/json");
-
-  int httpCode = http.GET();
-
-  Serial.print("HTTP status code: ");
-  Serial.println(httpCode);
-
-  if (httpCode == HTTP_CODE_OK) {
-    String payload = http.getString();
-
-    Serial.println("---- Response Body ----");
-    Serial.println(payload);
-
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, payload);
-
-    if (error) {
-        Serial.print("Response JSON parse failed: ");
-        Serial.println(error.c_str());
-        return;
-    }
-
-    const char* btcPriceUsd = doc["price"];
-    char btcPriceRounded[50];
-    get_first_part(btcPriceUsd, '.', btcPriceRounded);
-
-    Serial.printf("BTC USD price: %s", btcPriceRounded);
-    Serial.println("");
-
-    char currTime[32];
-    get_current_time(currTime, sizeof(currTime));
-
-    UiCommandItem uiCommandItem;
-    uiCommandItem.uiCommand = 1;
-    snprintf(uiCommandItem.price, sizeof(uiCommandItem.price), "USD %s", btcPriceRounded);
-    snprintf(uiCommandItem.timeAt, sizeof(uiCommandItem.timeAt), "%s", currTime);
-
-    // overwrite a possible existing queue entry
-    xQueueGenericSend(uiCommandQueue, &uiCommandItem, 0, queueOVERWRITE);
-
-  } else {
-    Serial.print("HTTP POST failed. Error: ");
-    Serial.println(http.errorToString(httpCode));
-  }
-
-  http.end();
-}
-
-void vTaskBinance(void * notUsed)
-{
-    const TickType_t xDelay = 15000 / portTICK_PERIOD_MS;
-    for( ;; ) {
-        /* Task code goes here. */
-
-        Serial.println("Query Binance API");
-        httpGetBtcQuoteFromBinance();
-        vTaskDelay(xDelay);
-    }
-}
-
-void loop() {
-    app_poll();
+    hw_poll(millis());
+    user_loop();    // yours, or the empty one in lw_user.cpp
     lv_timer_handler();
     delay(5);
-
-    UiCommandItem receivedItem;
-
-    if (xQueueReceive(uiCommandQueue, &receivedItem, 0) == pdTRUE) {
-        // Item received successfully
-        Serial.println("UI queue consumer...");
-        Serial.println(receivedItem.uiCommand);
-        Serial.println(receivedItem.price);
-        Serial.println(receivedItem.timeAt);
-
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%s", receivedItem.price);
-        if (ui_Label1 != NULL) {
-            lv_label_set_text(ui_Label1, buf);
-        }
-
-        snprintf(buf, sizeof(buf), "last updated at %s", receivedItem.timeAt);
-        if (ui_Label2 != NULL) {
-            lv_label_set_text(ui_Label2, buf);
-        }
-    }
 }

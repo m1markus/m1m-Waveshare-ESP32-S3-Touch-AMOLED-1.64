@@ -3,10 +3,14 @@
 #include "ui.h"
 
 lv_obj_t * ui_Bitcoin_Screen_1;
+lv_obj_t * ui_Container1;
+lv_obj_t * ui_Image1;
+lv_obj_t * ui_Container2;
 lv_obj_t * ui_Label1;
 lv_obj_t * ui_Label2;
-lv_obj_t * ui_Canvas1;
-lv_obj_t * ui_Image1;
+lv_obj_t * ui_Container3;
+lv_obj_t * ui_Screen2;
+lv_obj_t * ui_Image1_2;
 
 void ui_init(void)
 {
@@ -15,5 +19,6 @@ void ui_init(void)
     lv_display_set_theme(dispp, theme);
 
     ui_Bitcoin_Screen_1_screen_init();
+    ui_Screen2_screen_init();
     lv_screen_load(ui_Bitcoin_Screen_1);
 }

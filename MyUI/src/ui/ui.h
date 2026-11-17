@@ -4,7 +4,6 @@
 #ifndef UI_H
 #define UI_H
 
-#include "../../app_logic.h"
 #include "../../hardware.h"
 
 #ifdef __cplusplus
@@ -16,15 +15,24 @@ extern "C" {
 #include "ui_helpers.h"
 #include "ui_events.h"
 #include "ui_imgmem.h"
-#include "lw_canvas.h"
 
 // ---- Bitcoin_Screen_1 ----
 extern lv_obj_t * ui_Bitcoin_Screen_1;
+extern lv_obj_t * ui_Container1;
+extern lv_obj_t * ui_Image1;
+extern lv_obj_t * ui_Container2;
 extern lv_obj_t * ui_Label1;
 extern lv_obj_t * ui_Label2;
-extern lv_obj_t * ui_Canvas1;
-extern lv_obj_t * ui_Image1;
+extern lv_obj_t * ui_Container3;
 void ui_Bitcoin_Screen_1_screen_init(void);
+
+// ---- Screen2 ----
+extern lv_obj_t * ui_Screen2;
+extern lv_obj_t * ui_Image1_2;
+void ui_Screen2_screen_init(void);
+
+void ui_event_Bitcoin_Screen_1(lv_event_t * e);
+void ui_event_Screen2(lv_event_t * e);
 
 void ui_init(void);
 

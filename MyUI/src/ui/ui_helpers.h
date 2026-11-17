@@ -10,7 +10,7 @@ extern "C" {
 #include "lvgl.h"
 
 // ---- fonts from the LCD Wizard library (src/ui/fonts/) ----
-LV_FONT_DECLARE(ui_font_montserrat_bold_24);
+LV_FONT_DECLARE(ui_font_montserrat_bold_32);
 
 #define _UI_MODIFY_FLAG_ADD    0
 #define _UI_MODIFY_FLAG_REMOVE 1
@@ -19,6 +19,14 @@ LV_FONT_DECLARE(ui_font_montserrat_bold_24);
 void _ui_flag_modify(lv_obj_t * target, int32_t flag, int value);
 void _ui_screen_change(lv_obj_t ** target, lv_scr_load_anim_t fademode, int spd, int delay, void (*target_init)(void));
 void _ui_screen_delete(lv_obj_t ** target);
+// Whether the gesture being handled was meant for this handler's own
+// object, rather than reaching it by Event bubble from a widget being dragged.
+static inline bool _ui_gesture_mine(lv_event_t * e)
+{
+    lv_obj_t * o = lv_indev_get_active_obj();
+    while (o && lv_obj_has_flag(o, LV_OBJ_FLAG_GESTURE_BUBBLE)) o = lv_obj_get_parent(o);
+    return o == NULL || o == (lv_obj_t *)lv_event_get_current_target(e);
+}
 #if LV_USE_ARC
 void _ui_arc_increment(lv_obj_t * target, int val);
 void _ui_arc_set_text_value(lv_obj_t * trg, lv_obj_t * src, const char * prefix, const char * postfix);

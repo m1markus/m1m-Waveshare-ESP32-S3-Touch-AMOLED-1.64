@@ -3,47 +3,43 @@
 
 #include "ui.h"
 
+void ui_event_Bitcoin_Screen_1(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = (lv_obj_t *)lv_event_get_target_obj(e);
+    (void)target;
+
+    if (event_code == LV_EVENT_GESTURE && lv_indev_get_gesture_dir(lv_indev_active()) == LV_DIR_LEFT && _ui_gesture_mine(e)) {
+        _ui_screen_change(&ui_Screen2, LV_SCR_LOAD_ANIM_NONE, 1, 0, &ui_Screen2_screen_init);
+    }
+}
+
 void ui_Bitcoin_Screen_1_screen_init(void)
 {
     ui_Bitcoin_Screen_1 = lv_obj_create(NULL);
     lv_obj_remove_flag(ui_Bitcoin_Screen_1, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(ui_Bitcoin_Screen_1, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Bitcoin_Screen_1, lv_color_hex(0x00364A), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Bitcoin_Screen_1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label1 = lv_label_create(ui_Bitcoin_Screen_1);
-    lv_obj_set_width(ui_Label1, 256);
-    lv_obj_set_height(ui_Label1, 40);
-    lv_obj_set_x(ui_Label1, 16);
-    lv_obj_set_y(ui_Label1, 216);
-    lv_label_set_long_mode(ui_Label1, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(ui_Label1, "USD 1.00");
-    lv_obj_set_style_text_color(ui_Label1, lv_color_hex(0xE3E3E3), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_Label1, &ui_font_montserrat_bold_24, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui_Label1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_Container1 = lv_obj_create(ui_Bitcoin_Screen_1);
+    lv_obj_set_width(ui_Container1, 248);
+    lv_obj_set_height(ui_Container1, 144);
+    lv_obj_set_x(ui_Container1, 16);
+    lv_obj_set_y(ui_Container1, 16);
+    lv_obj_remove_flag(ui_Container1, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_opa(ui_Container1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_Container1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_Container1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_Container1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_Container1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_Container1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Container1, lv_color_hex(0x004D65), LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Label2 = lv_label_create(ui_Bitcoin_Screen_1);
-    lv_obj_set_width(ui_Label2, 248);
-    lv_obj_set_height(ui_Label2, 24);
-    lv_obj_set_x(ui_Label2, 16);
-    lv_obj_set_y(ui_Label2, 264);
-    lv_label_set_long_mode(ui_Label2, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(ui_Label2, "Label");
-    lv_obj_set_style_text_color(ui_Label2, lv_color_hex(0xE3E3E3), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_align(ui_Label2, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_Canvas1 = lv_canvas_create(ui_Bitcoin_Screen_1);
-    lv_obj_set_width(ui_Canvas1, 256);
-    lv_obj_set_height(ui_Canvas1, 160);
-    lv_obj_set_x(ui_Canvas1, 16);
-    lv_obj_set_y(ui_Canvas1, 16);
-    ui_canvas_attach(ui_Canvas1, 256, 160, LV_COLOR_FORMAT_RGB565, lv_color_hex(0x00364A), 255);
-    lv_obj_set_style_border_width(ui_Canvas1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_arc_rounded(ui_Canvas1, false, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_Image1 = lv_image_create(ui_Bitcoin_Screen_1);
-    lv_obj_set_width(ui_Image1, 128);
-    lv_obj_set_height(ui_Image1, 128);
-    lv_obj_set_x(ui_Image1, 80);
-    lv_obj_set_y(ui_Image1, 32);
+    ui_Image1 = lv_image_create(ui_Container1);
+    lv_obj_set_width(ui_Image1, 112);
+    lv_obj_set_height(ui_Image1, 112);
+    lv_obj_set_x(ui_Image1, 68);
+    lv_obj_set_y(ui_Image1, 16);
     lv_image_set_src(ui_Image1, "S:/bitcoin_logo.bin");
     lv_image_set_pivot(ui_Image1, 0, 0);
     lv_image_set_rotation(ui_Image1, 0);
@@ -53,5 +49,56 @@ void ui_Bitcoin_Screen_1_screen_init(void)
     lv_image_set_offset_y(ui_Image1, 0);
     lv_image_set_inner_align(ui_Image1, LV_IMAGE_ALIGN_DEFAULT);
 
+    ui_Container2 = lv_obj_create(ui_Bitcoin_Screen_1);
+    lv_obj_set_width(ui_Container2, 248);
+    lv_obj_set_height(ui_Container2, 80);
+    lv_obj_set_x(ui_Container2, 16);
+    lv_obj_set_y(ui_Container2, 176);
+    lv_obj_remove_flag(ui_Container2, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_opa(ui_Container2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_Container2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_Container2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_Container2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_Container2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_Container2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Container2, lv_color_hex(0x004D65), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label1 = lv_label_create(ui_Container2);
+    lv_obj_set_width(ui_Label1, 232);
+    lv_obj_set_height(ui_Label1, 40);
+    lv_obj_set_x(ui_Label1, 8);
+    lv_obj_set_y(ui_Label1, 8);
+    lv_label_set_long_mode(ui_Label1, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(ui_Label1, "USD 1.00");
+    lv_obj_set_style_text_color(ui_Label1, lv_color_hex(0xE3E3E3), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_Label1, &ui_font_montserrat_bold_32, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui_Label1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Label2 = lv_label_create(ui_Container2);
+    lv_obj_set_width(ui_Label2, 232);
+    lv_obj_set_height(ui_Label2, 24);
+    lv_obj_set_x(ui_Label2, 8);
+    lv_obj_set_y(ui_Label2, 48);
+    lv_label_set_long_mode(ui_Label2, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(ui_Label2, "Label");
+    lv_obj_set_style_text_color(ui_Label2, lv_color_hex(0xE3E3E3), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui_Label2, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_Label2, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Container3 = lv_obj_create(ui_Bitcoin_Screen_1);
+    lv_obj_set_width(ui_Container3, 248);
+    lv_obj_set_height(ui_Container3, 168);
+    lv_obj_set_x(ui_Container3, 16);
+    lv_obj_set_y(ui_Container3, 272);
+    lv_obj_remove_flag(ui_Container3, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_opa(ui_Container3, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(ui_Container3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_top(ui_Container3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_bottom(ui_Container3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_left(ui_Container3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_right(ui_Container3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Container3, lv_color_hex(0x004D65), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    lv_obj_add_event_cb(ui_Bitcoin_Screen_1, ui_event_Bitcoin_Screen_1, LV_EVENT_ALL, NULL);
     ui_imgmem_attach(ui_Bitcoin_Screen_1);
 }
