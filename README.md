@@ -169,6 +169,30 @@ You can also inspect the response headers from any API request:
 
 [bitcoin logo](https://www.svgrepo.com/svg/303287/bitcoin-logo)
 
+### Data per trading day
+
+https://api.binance.com/api/v3/ticker/tradingDay?symbol=BTCUSDT
+
+```json
+{
+  "symbol": "BTCUSDT",
+  "priceChange": "-1136.44000000",
+  "priceChangePercent": "-1.752",
+  "weightedAvgPrice": "64521.94593537",
+  "openPrice": "64882.88000000",
+  "highPrice": "65447.00000000",
+  "lowPrice": "63336.00000000",
+  "lastPrice": "63746.44000000",
+  "volume": "24271.59839000",
+  "quoteVolume": "1566050759.08463140",
+  "openTime": 1794873600000,
+  "closeTime": 1794959999999,
+  "firstId": 6870475440,
+  "lastId": 6874610116,
+  "count": 4134677
+}
+```
+
 
 ## Query BTC price on Coingecko
 
@@ -206,3 +230,11 @@ GET https://api.alternative.me/fng/
 ```
 
 time_until_update: is in seconds
+
+## Other sources
+
+### Candel stick chart
+
+[Github markomarkovic/cyd-crypto-ticker](https://github.com/markomarkovic/cyd-crypto-ticker)
+
+[Github MaWe88/esp32-cyd-ticker](https://github.com/MaWe88/esp32-cyd-ticker)

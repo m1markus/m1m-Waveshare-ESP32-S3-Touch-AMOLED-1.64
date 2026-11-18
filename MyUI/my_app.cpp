@@ -15,7 +15,7 @@
 const char* WIFI_SSID = WIFI_SSID_VALUE;
 const char* WIFI_PASS = WIFI_PASSWORD_VALUE;
 
-const char* API_URL = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+const char* API_URL = "https://api.binance.com/api/v3/ticker/tradingDay?symbol=BTCUSDT";
 
 QueueHandle_t uiCommandQueue;
 
@@ -142,7 +142,7 @@ void httpGetBtcQuoteFromBinance() {
         return;
     }
 
-    const char* btcPriceUsd = doc["price"];
+    const char* btcPriceUsd = doc["lastPrice"];
     char btcPriceRounded[50];
     get_first_part(btcPriceUsd, '.', btcPriceRounded);
 
