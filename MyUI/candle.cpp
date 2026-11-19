@@ -631,14 +631,14 @@ bool candle_stick_day_daw(
     snprintf(
         open_text,
         sizeof(open_text),
-        "Open %s",
+        "%s",
         open_price
     );
 
     snprintf(
         close_text,
         sizeof(close_text),
-        "Close %s",
+        "%s",
         close_price
     );
 
