@@ -249,22 +249,6 @@ void user_loop(void) {
             lv_label_set_text(ui_Label2, buf);
         }
 
-        CandleChartData btc = {
-            .priceOpen  = 64882,
-            .priceClose = 65746,
-            .priceHight = 65443,
-            .priceLow   = 63336
-        };
-
-/* Clear background before drawing 
-lv_canvas_fill_bg(
-    canvas,
-    lv_color_hex(0x101820),
-    LV_OPA_COVER
-);   */
-
-        candle_stick_day_daw(ui_CanvasCandleDayChart, &btc);
+        candle_stick_day_daw(ui_CanvasCandleDayChart, &(receivedItem.candleChartData));
     }
 }
-
-// ui_CanvasCandleDayChart
