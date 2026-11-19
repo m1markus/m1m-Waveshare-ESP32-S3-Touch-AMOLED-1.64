@@ -8,36 +8,44 @@
 
 #include "candle.h"
 
-/* -------------------------------------------------
- * Configuration
- * ------------------------------------------------- */
+/* =================================================
+ * CONFIGURATION
+ * ================================================= */
 
-#define CANVAS_BG_COLOR       0x004D65
+#define CANVAS_BG_COLOR          0x004D65
 
-#define CANDLE_COLOR_UP       0x26A69A
-#define CANDLE_COLOR_DOWN     0xEF5350
+#define CANDLE_COLOR_UP          0x26A69A
+#define CANDLE_COLOR_DOWN        0xEF5350
 
-#define CANDLE_COLOR_GRID     0xB0B0B0
-#define CANDLE_COLOR_AXIS     0xFFFFFF
+#define CANDLE_COLOR_GRID        0xFFFFFF
+#define CANDLE_COLOR_AXIS        0xFFFFFF
 
-#define CANDLE_COLOR_MARKER   0xEF5350
+#define GRID_LINES               5
 
-#define GRID_LINES            5
+#define CHART_PADDING_TOP        8
+#define CHART_PADDING_BOTTOM     8
 
-#define CHART_PADDING_TOP     8
-#define CHART_PADDING_BOTTOM  8
+#define CANDLE_BODY_MIN_WIDTH    8
+#define CANDLE_BODY_MAX_WIDTH    24
 
-#define CANDLE_BODY_MIN_WIDTH 8
-
-#define CANDLE_FONT           LV_FONT_DEFAULT
-
-
-/* -------------------------------------------------
- * Format price
+/*
+ * Enable these fonts in lv_conf.h:
  *
- * Input:  64882 = 64.882
- * Output: German number formatting
- * ------------------------------------------------- */
+ * #define LV_FONT_MONTSERRAT_10 1
+ * #define LV_FONT_MONTSERRAT_12 1
+ */
+
+#define CANDLE_AXIS_FONT         (&lv_font_montserrat_10)
+#define CANDLE_ANNOTATION_FONT   (&lv_font_montserrat_10)
+
+
+/* =================================================
+ * PRICE FORMATTING
+ *
+ * 64882 -> 64.882
+ * 63746 -> 63.746
+ * 65447 -> 65.447
+ * ================================================= */
 
 static void candle_format_price(
     int64_t price,
@@ -51,8 +59,12 @@ static void candle_format_price(
     char raw[32];
     char formatted[48];
 
-    snprintf(raw, sizeof(raw), "%llu",
-             (unsigned long long)value);
+    snprintf(
+        raw,
+        sizeof(raw),
+        "%llu",
+        (unsigned long long)value
+    );
 
     int len = strlen(raw);
     int pos = 0;
@@ -61,6 +73,7 @@ static void candle_format_price(
         formatted[pos++] = '-';
 
     for(int i = 0; i < len; i++) {
+
         formatted[pos++] = raw[i];
 
         int remaining = len - i - 1;
@@ -75,18 +88,21 @@ static void candle_format_price(
 }
 
 
-/* -------------------------------------------------
- * Calculate nice grid interval
+/* =================================================
+ * NICE PRICE INTERVAL
+ *
+ * Automatically calculates suitable grid steps.
  *
  * Example:
- * 50000 = 500.00 price units
- * ------------------------------------------------- */
+ * 63336 - 65447 -> 500
+ * ================================================= */
 
 static int64_t candle_nice_step(
     int64_t price_min,
     int64_t price_max
 ) {
-    double range = (double)(price_max - price_min);
+    double range =
+        (double)price_max - (double)price_min;
 
     double raw = range / (GRID_LINES - 1);
 
@@ -97,7 +113,6 @@ static int64_t candle_nice_step(
     double base = pow(10.0, exponent);
 
     double fraction = raw / base;
-
     double nice_fraction;
 
     if(fraction <= 1.0)
@@ -115,9 +130,12 @@ static int64_t candle_nice_step(
 }
 
 
-/* -------------------------------------------------
- * Price to Y coordinate
- * ------------------------------------------------- */
+/* =================================================
+ * PRICE TO Y COORDINATE
+ *
+ * Higher price = smaller Y
+ * Lower price  = larger Y
+ * ================================================= */
 
 static int32_t candle_price_to_y(
     int64_t price,
@@ -135,19 +153,23 @@ static int32_t candle_price_to_y(
     double normalized =
         ((double)price_max - (double)price) / range;
 
-    if(normalized < 0.0) normalized = 0.0;
-    if(normalized > 1.0) normalized = 1.0;
+    if(normalized < 0.0)
+        normalized = 0.0;
+
+    if(normalized > 1.0)
+        normalized = 1.0;
 
     return chart_top +
         (int32_t)(
-            normalized * (chart_bottom - chart_top) + 0.5
+            normalized *
+            (chart_bottom - chart_top) + 0.5
         );
 }
 
 
-/* -------------------------------------------------
- * Draw horizontal line
- * ------------------------------------------------- */
+/* =================================================
+ * DRAW LINE
+ * ================================================= */
 
 static void candle_draw_line(
     lv_layer_t *layer,
@@ -156,17 +178,18 @@ static void candle_draw_line(
     int32_t x2,
     int32_t y2,
     lv_color_t color,
-    int32_t width,
+    int32_t line_width,
     int32_t dash_width,
     int32_t dash_gap,
-    lv_opa_t opa
+    lv_opa_t opacity
 ) {
     lv_draw_line_dsc_t dsc;
+
     lv_draw_line_dsc_init(&dsc);
 
     dsc.color = color;
-    dsc.width = width;
-    dsc.opa = opa;
+    dsc.width = line_width;
+    dsc.opa = opacity;
 
     dsc.dash_width = dash_width;
     dsc.dash_gap = dash_gap;
@@ -181,9 +204,9 @@ static void candle_draw_line(
 }
 
 
-/* -------------------------------------------------
- * Draw text
- * ------------------------------------------------- */
+/* =================================================
+ * DRAW TEXT
+ * ================================================= */
 
 static void candle_draw_text(
     lv_layer_t *layer,
@@ -193,13 +216,18 @@ static void candle_draw_text(
     int32_t width,
     int32_t height,
     lv_color_t color,
-    lv_text_align_t align
+    lv_text_align_t align,
+    const lv_font_t *font
 ) {
+    if(width <= 0 || height <= 0)
+        return;
+
     lv_draw_label_dsc_t dsc;
+
     lv_draw_label_dsc_init(&dsc);
 
     dsc.color = color;
-    dsc.font = CANDLE_FONT;
+    dsc.font = font;
     dsc.text = text;
     dsc.align = align;
     dsc.opa = LV_OPA_COVER;
@@ -215,19 +243,61 @@ static void candle_draw_text(
 }
 
 
-/* -------------------------------------------------
- * Draw one daily candlestick
+/* =================================================
+ * DRAW RECTANGLE
+ * ================================================= */
+
+static void candle_draw_rect(
+    lv_layer_t *layer,
+    int32_t x1,
+    int32_t y1,
+    int32_t x2,
+    int32_t y2,
+    lv_color_t color
+) {
+    lv_draw_rect_dsc_t dsc;
+
+    lv_draw_rect_dsc_init(&dsc);
+
+    dsc.bg_color = color;
+    dsc.bg_opa = LV_OPA_COVER;
+    dsc.border_width = 0;
+    dsc.radius = 0;
+
+    lv_area_t area = {
+        .x1 = x1,
+        .y1 = y1,
+        .x2 = x2,
+        .y2 = y2
+    };
+
+    lv_draw_rect(layer, &dsc, &area);
+}
+
+
+/* =================================================
+ * MAIN FUNCTION
  *
- * canvas: Existing LVGL canvas
- * data:   Candle price data
+ * Draw exactly one daily candlestick.
+ *
+ * canvas = LVGL canvas object
+ * data   = CandleChartData
  *
  * priceClose = actual/current price
- * ------------------------------------------------- */
+ *
+ * Returns:
+ * true  = success
+ * false = invalid input
+ * ================================================= */
 
 bool candle_stick_day_daw(
     lv_obj_t *canvas,
     const CandleChartData *data
 ) {
+    /* ---------------------------------------------
+     * Validate input
+     * --------------------------------------------- */
+
     if(canvas == NULL || data == NULL)
         return false;
 
@@ -240,15 +310,22 @@ bool candle_stick_day_daw(
     if(data->priceHight <= data->priceLow)
         return false;
 
+    if(data->priceOpen < data->priceLow ||
+       data->priceOpen > data->priceHight ||
+       data->priceClose < data->priceLow ||
+       data->priceClose > data->priceHight)
+        return false;
+
+
     /* ---------------------------------------------
      * Chart dimensions
      * --------------------------------------------- */
 
     int32_t chart_top = CHART_PADDING_TOP;
-    int32_t chart_bottom = height - CHART_PADDING_BOTTOM - 1;
 
-    int32_t font_height =
-        lv_font_get_line_height(CANDLE_FONT);
+    int32_t chart_bottom =
+        height - CHART_PADDING_BOTTOM - 1;
+
 
     /* ---------------------------------------------
      * Calculate automatic price range
@@ -259,7 +336,7 @@ bool candle_stick_day_daw(
         data->priceHight
     );
 
-    if(price_step < 1)
+    if(price_step <= 0)
         return false;
 
     int64_t price_min =
@@ -275,28 +352,62 @@ bool candle_stick_day_daw(
     if(price_max <= price_min)
         return false;
 
+
     /* ---------------------------------------------
      * Layout
+     *
+     * Left  = price axis
+     * Center = candle
+     * Right = Open / Close annotations
      * --------------------------------------------- */
 
-    int32_t axis_width = width * 18 / 100;
+    int32_t axis_width = width * 25 / 100;
 
     int32_t chart_left = axis_width;
-    int32_t chart_right = width - 5;
+
+    int32_t chart_right = width - 4;
+
+    int32_t plot_width = chart_right - chart_left;
+
+    if(plot_width < 40)
+        return false;
+
+    /*
+     * Candle slightly left of center.
+     * This leaves space for annotations.
+     */
 
     int32_t center_x =
-        chart_left + (chart_right - chart_left) * 52 / 100;
+        chart_left + plot_width * 55 / 100;
 
-    int32_t body_width = width / 7;
+    int32_t body_width = width / 10;
+
+    if(body_width > CANDLE_BODY_MAX_WIDTH)
+        body_width = CANDLE_BODY_MAX_WIDTH;
 
     if(body_width < CANDLE_BODY_MIN_WIDTH)
         body_width = CANDLE_BODY_MIN_WIDTH;
 
-    int32_t body_left = center_x - body_width / 2;
-    int32_t body_right = center_x + body_width / 2;
+    int32_t body_left =
+        center_x - body_width / 2;
+
+    int32_t body_right =
+        center_x + (body_width - 1) / 2;
+
 
     /* ---------------------------------------------
-     * Price coordinates
+     * Font dimensions
+     * --------------------------------------------- */
+
+    int32_t axis_font_height =
+        lv_font_get_line_height(CANDLE_AXIS_FONT);
+
+    int32_t annotation_font_height =
+        lv_font_get_line_height(CANDLE_ANNOTATION_FONT);
+
+
+    /* ---------------------------------------------
+     * Calculate price coordinates
      * --------------------------------------------- */
 
     int32_t y_high = candle_price_to_y(
@@ -331,21 +442,25 @@ bool candle_stick_day_daw(
         chart_bottom
     );
 
+
     /* ---------------------------------------------
-     * Candle direction
+     * Determine candle direction
      * --------------------------------------------- */
 
     bool bullish =
         data->priceClose >= data->priceOpen;
 
     lv_color_t candle_color = lv_color_hex(
-        bullish ? CANDLE_COLOR_UP : CANDLE_COLOR_DOWN
+        bullish
+            ? CANDLE_COLOR_UP
+            : CANDLE_COLOR_DOWN
     );
 
-    lv_color_t marker_color = candle_color;
 
     /* ---------------------------------------------
-     * Clear canvas with ORIGINAL background color
+     * Clear canvas
+     *
+     * Keep original background color!
      * --------------------------------------------- */
 
     lv_canvas_fill_bg(
@@ -358,15 +473,17 @@ bool candle_stick_day_daw(
 
     lv_canvas_init_layer(canvas, &layer);
 
+
     /* ---------------------------------------------
-     * Draw grid and price axis
+     * Draw price grid and Y-axis labels
      * --------------------------------------------- */
 
     for(int i = 0; i < GRID_LINES; i++) {
 
         int64_t tick_price =
-            price_min + (price_max - price_min) * i
-            / (GRID_LINES - 1);
+            price_min +
+            (price_max - price_min) * i /
+            (GRID_LINES - 1);
 
         int32_t y = candle_price_to_y(
             tick_price,
@@ -376,7 +493,8 @@ bool candle_stick_day_daw(
             chart_bottom
         );
 
-        /* Dashed gray grid */
+        /* Gray dashed horizontal grid */
+
         candle_draw_line(
             &layer,
             chart_left,
@@ -384,13 +502,14 @@ bool candle_stick_day_daw(
             chart_right,
             y,
             lv_color_hex(CANDLE_COLOR_GRID),
-            2,
-            10,
-            8,
-            LV_OPA_60
+            1,
+            7,
+            5,
+            LV_OPA_50
         );
 
-        /* Left price labels */
+        /* White Y-axis label */
+
         char price_text[32];
 
         candle_format_price(
@@ -403,16 +522,18 @@ bool candle_stick_day_daw(
             &layer,
             price_text,
             0,
-            y - font_height / 2,
-            axis_width - 8,
-            font_height + 2,
+            y - axis_font_height / 2,
+            axis_width - 5,
+            axis_font_height + 2,
             lv_color_hex(CANDLE_COLOR_AXIS),
-            LV_TEXT_ALIGN_RIGHT
+            LV_TEXT_ALIGN_RIGHT,
+            CANDLE_AXIS_FONT
         );
     }
 
+
     /* ---------------------------------------------
-     * Draw High / Low wick
+     * Draw candle wick (High -> Low)
      * --------------------------------------------- */
 
     candle_draw_line(
@@ -422,46 +543,15 @@ bool candle_stick_day_daw(
         center_x,
         y_low,
         candle_color,
-        3,
+        2,
         0,
         0,
         LV_OPA_COVER
     );
 
-    /* ---------------------------------------------
-     * Draw Open / Close marker lines
-     * --------------------------------------------- */
-
-    int32_t marker_start = body_right + 2;
-
-    candle_draw_line(
-        &layer,
-        marker_start,
-        y_open,
-        chart_right,
-        y_open,
-        marker_color,
-        2,
-        10,
-        8,
-        LV_OPA_80
-    );
-
-    candle_draw_line(
-        &layer,
-        marker_start,
-        y_close,
-        chart_right,
-        y_close,
-        marker_color,
-        2,
-        10,
-        8,
-        LV_OPA_80
-    );
 
     /* ---------------------------------------------
-     * Draw candle body
+     * Draw candle body (Open -> Close)
      * --------------------------------------------- */
 
     int32_t body_top =
@@ -473,42 +563,58 @@ bool candle_stick_day_daw(
     if(body_bottom - body_top < 2)
         body_bottom = body_top + 2;
 
-    lv_draw_rect_dsc_t body_dsc;
-    lv_draw_rect_dsc_init(&body_dsc);
-
-    body_dsc.bg_color = candle_color;
-    body_dsc.bg_opa = LV_OPA_COVER;
-    body_dsc.border_width = 0;
-    body_dsc.radius = 0;
-
-    lv_area_t body_area = {
-        .x1 = body_left,
-        .y1 = body_top,
-        .x2 = body_right,
-        .y2 = body_bottom
-    };
-
-    lv_draw_rect(
+    candle_draw_rect(
         &layer,
-        &body_dsc,
-        &body_area
+        body_left,
+        body_top,
+        body_right,
+        body_bottom,
+        candle_color
     );
 
+
     /* ---------------------------------------------
-     * Open / Close labels on the right
+     * Open / Close marker lines
      * --------------------------------------------- */
 
-    char open_text[48];
-    char close_text[48];
+    int32_t marker_start = body_right + 2;
 
-    snprintf(open_text, sizeof(open_text),
-             "Open %s", "");
+    candle_draw_line(
+        &layer,
+        marker_start,
+        y_open,
+        chart_right,
+        y_open,
+        candle_color,
+        2,
+        7,
+        5,
+        LV_OPA_80
+    );
 
-    snprintf(close_text, sizeof(close_text),
-             "Close %s", "");
+    candle_draw_line(
+        &layer,
+        marker_start,
+        y_close,
+        chart_right,
+        y_close,
+        candle_color,
+        2,
+        7,
+        5,
+        LV_OPA_80
+    );
+
+
+    /* ---------------------------------------------
+     * Format Open / Close values
+     * --------------------------------------------- */
 
     char open_price[32];
     char close_price[32];
+
+    char open_text[48];
+    char close_text[48];
 
     candle_format_price(
         data->priceOpen,
@@ -522,44 +628,109 @@ bool candle_stick_day_daw(
         sizeof(close_price)
     );
 
-    snprintf(open_text, sizeof(open_text),
-             "Open %s", open_price);
+    snprintf(
+        open_text,
+        sizeof(open_text),
+        "Open %s",
+        open_price
+    );
 
-    snprintf(close_text, sizeof(close_text),
-             "Close %s", close_price);
+    snprintf(
+        close_text,
+        sizeof(close_text),
+        "Close %s",
+        close_price
+    );
 
-    int32_t label_x = marker_start + 10;
-    int32_t label_width = width - label_x - 4;
-
-    if(label_width > 0) {
-
-        /* Open label above its marker line */
-        candle_draw_text(
-            &layer,
-            open_text,
-            label_x,
-            y_open - font_height - 3,
-            label_width,
-            font_height + 2,
-            marker_color,
-            LV_TEXT_ALIGN_LEFT
-        );
-
-        /* Close label below its marker line */
-        candle_draw_text(
-            &layer,
-            close_text,
-            label_x,
-            y_close + 3,
-            label_width,
-            font_height + 2,
-            marker_color,
-            LV_TEXT_ALIGN_LEFT
-        );
-    }
 
     /* ---------------------------------------------
-     * Finish canvas
+     * Annotation layout
+     * --------------------------------------------- */
+
+    int32_t label_x = marker_start + 4;
+
+    int32_t label_width =
+        chart_right - label_x + 1;
+
+    /*
+     * Place labels outside the candle body.
+     *
+     * Bearish:
+     * Open above, Close below.
+     *
+     * Bullish:
+     * Close above, Open below.
+     */
+
+    int32_t open_label_y;
+    int32_t close_label_y;
+
+    if(bullish) {
+
+        open_label_y = y_open + 2;
+
+        close_label_y =
+            y_close - annotation_font_height - 2;
+
+    } else {
+
+        open_label_y =
+            y_open - annotation_font_height - 2;
+
+        close_label_y = y_close + 2;
+    }
+
+    /* Keep labels inside canvas */
+
+    if(open_label_y < 0)
+        open_label_y = 0;
+
+    if(open_label_y + annotation_font_height > height)
+        open_label_y = height - annotation_font_height;
+
+    if(close_label_y < 0)
+        close_label_y = 0;
+
+    if(close_label_y + annotation_font_height > height)
+        close_label_y = height - annotation_font_height;
+
+
+    /* ---------------------------------------------
+     * Draw Open label
+     * --------------------------------------------- */
+
+    candle_draw_text(
+        &layer,
+        open_text,
+        label_x,
+        open_label_y,
+        label_width,
+        annotation_font_height + 2,
+        candle_color,
+        LV_TEXT_ALIGN_LEFT,
+        CANDLE_ANNOTATION_FONT
+    );
+
+
+    /* ---------------------------------------------
+     * Draw Close label
+     * --------------------------------------------- */
+
+    candle_draw_text(
+        &layer,
+        close_text,
+        label_x,
+        close_label_y,
+        label_width,
+        annotation_font_height + 2,
+        candle_color,
+        LV_TEXT_ALIGN_LEFT,
+        CANDLE_ANNOTATION_FONT
+    );
+
+
+    /* ---------------------------------------------
+     * Finish canvas drawing
      * --------------------------------------------- */
 
     lv_canvas_finish_layer(canvas, &layer);
