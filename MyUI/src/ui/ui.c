@@ -9,6 +9,7 @@ lv_obj_t * ui_Container2;
 lv_obj_t * ui_Label1;
 lv_obj_t * ui_Label2;
 lv_obj_t * ui_Container3;
+lv_obj_t * ui_CanvasCandleDayChart;
 lv_obj_t * ui_Screen2;
 lv_obj_t * ui_Image1_2;
 

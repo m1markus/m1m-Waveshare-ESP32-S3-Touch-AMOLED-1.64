@@ -99,6 +99,15 @@ void ui_Bitcoin_Screen_1_screen_init(void)
     lv_obj_set_style_pad_right(ui_Container3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(ui_Container3, lv_color_hex(0x004D65), LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_CanvasCandleDayChart = lv_canvas_create(ui_Container3);
+    lv_obj_set_width(ui_CanvasCandleDayChart, 216);
+    lv_obj_set_height(ui_CanvasCandleDayChart, 136);
+    lv_obj_set_x(ui_CanvasCandleDayChart, 16);
+    lv_obj_set_y(ui_CanvasCandleDayChart, 16);
+    ui_canvas_attach(ui_CanvasCandleDayChart, 216, 136, LV_COLOR_FORMAT_RGB565, lv_color_hex(0x004D65), 255);
+    lv_obj_set_style_bg_opa(ui_CanvasCandleDayChart, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_CanvasCandleDayChart, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+
     lv_obj_add_event_cb(ui_Bitcoin_Screen_1, ui_event_Bitcoin_Screen_1, LV_EVENT_ALL, NULL);
     ui_imgmem_attach(ui_Bitcoin_Screen_1);
 }

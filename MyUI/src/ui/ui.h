@@ -15,6 +15,7 @@ extern "C" {
 #include "ui_helpers.h"
 #include "ui_events.h"
 #include "ui_imgmem.h"
+#include "lw_canvas.h"
 
 // ---- Bitcoin_Screen_1 ----
 extern lv_obj_t * ui_Bitcoin_Screen_1;
@@ -24,6 +25,7 @@ extern lv_obj_t * ui_Container2;
 extern lv_obj_t * ui_Label1;
 extern lv_obj_t * ui_Label2;
 extern lv_obj_t * ui_Container3;
+extern lv_obj_t * ui_CanvasCandleDayChart;
 void ui_Bitcoin_Screen_1_screen_init(void);
 
 // ---- Screen2 ----

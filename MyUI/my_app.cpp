@@ -11,6 +11,7 @@
 
 #include "../env.h"
 #include "my_app.h"
+#include "candle.h"
 
 const char* WIFI_SSID = WIFI_SSID_VALUE;
 const char* WIFI_PASS = WIFI_PASSWORD_VALUE;
@@ -96,6 +97,14 @@ void get_current_time(char *output, int output_size) {
 }
 
 
+int32_t getIntPartFromPrice(const char *pszPrice) {
+    if (pszPrice == NULL) return 0;
+    char szPrice[32];
+    get_first_part(pszPrice, '.', szPrice);
+    return atoi(szPrice);
+}
+
+
 void httpGetBtcQuoteFromBinance() {
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Wi-Fi is not connected.");
@@ -156,6 +165,22 @@ void httpGetBtcQuoteFromBinance() {
     uiCommandItem.uiCommand = 1;
     snprintf(uiCommandItem.price, sizeof(uiCommandItem.price), "USD %s", btcPriceRounded);
     snprintf(uiCommandItem.timeAt, sizeof(uiCommandItem.timeAt), "%s", currTime);
+
+    const char* pszPrice = doc["lastPrice"];
+    int32_t nPrice = getIntPartFromPrice(pszPrice);
+    uiCommandItem.candleChartData.priceClose = nPrice;      // store the actual price in the closing field
+
+    pszPrice = doc["openPrice"];
+    nPrice = getIntPartFromPrice(pszPrice);
+    uiCommandItem.candleChartData.priceOpen = nPrice;
+
+    pszPrice = doc["highPrice"];
+    nPrice = getIntPartFromPrice(pszPrice);
+    uiCommandItem.candleChartData.priceHight = nPrice;
+
+    pszPrice = doc["lowPrice"];
+    nPrice = getIntPartFromPrice(pszPrice);
+    uiCommandItem.candleChartData.priceLow = nPrice;
 
     // overwrite a possible existing queue entry
     xQueueGenericSend(uiCommandQueue, &uiCommandItem, 0, queueOVERWRITE);
@@ -223,5 +248,23 @@ void user_loop(void) {
         if (ui_Label2 != NULL) {
             lv_label_set_text(ui_Label2, buf);
         }
+
+        CandleChartData btc = {
+            .priceOpen  = 64882,
+            .priceClose = 65746,
+            .priceHight = 65443,
+            .priceLow   = 63336
+        };
+
+/* Clear background before drawing 
+lv_canvas_fill_bg(
+    canvas,
+    lv_color_hex(0x101820),
+    LV_OPA_COVER
+);   */
+
+        candle_stick_day_daw(ui_CanvasCandleDayChart, &btc);
     }
 }
+
+// ui_CanvasCandleDayChart
