@@ -35,8 +35,8 @@
  * #define LV_FONT_MONTSERRAT_12 1
  */
 
-#define CANDLE_AXIS_FONT         (&lv_font_montserrat_10)
-#define CANDLE_ANNOTATION_FONT   (&lv_font_montserrat_10)
+#define CANDLE_AXIS_FONT         (&lv_font_montserrat_14)
+#define CANDLE_ANNOTATION_FONT   (&lv_font_montserrat_16)
 
 
 /* =================================================
@@ -578,13 +578,14 @@ bool candle_stick_day_daw(
      * Open / Close marker lines
      * --------------------------------------------- */
 
-    int32_t marker_start = body_right + 2;
+    int32_t marker_start    = body_right + 2;   /* Close, rechts */
+    int32_t open_marker_end = body_left - 2;    /* Open, links   */
 
     candle_draw_line(
         &layer,
-        marker_start,
+        chart_left,
         y_open,
-        chart_right,
+        open_marker_end,
         y_open,
         candle_color,
         2,
@@ -653,6 +654,12 @@ bool candle_stick_day_daw(
     int32_t label_width =
         chart_right - label_x + 1;
 
+    /* Open label links der Kerze */
+    int32_t open_label_x = chart_left;
+
+    int32_t open_label_width =
+        (open_marker_end - 4) - open_label_x + 1;
+
     /*
      * Place labels outside the candle body.
      *
@@ -703,12 +710,12 @@ bool candle_stick_day_daw(
     candle_draw_text(
         &layer,
         open_text,
-        label_x,
+        open_label_x,
         open_label_y,
-        label_width,
+        open_label_width,
         annotation_font_height + 2,
         candle_color,
-        LV_TEXT_ALIGN_LEFT,
+        LV_TEXT_ALIGN_RIGHT,
         CANDLE_ANNOTATION_FONT
     );
 
@@ -729,7 +736,7 @@ bool candle_stick_day_daw(
         CANDLE_ANNOTATION_FONT
     );
 
-
+    
     /* ---------------------------------------------
      * Finish canvas drawing
      * --------------------------------------------- */
