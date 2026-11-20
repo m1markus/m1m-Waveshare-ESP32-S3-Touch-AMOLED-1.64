@@ -229,6 +229,7 @@ static void candle_draw_text(
     dsc.color = color;
     dsc.font = font;
     dsc.text = text;
+    dsc.text_local = 1;          /* <-- NEU: LVGL kopiert den Text */
     dsc.align = align;
     dsc.opa = LV_OPA_COVER;
 
