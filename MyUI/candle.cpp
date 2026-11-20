@@ -217,7 +217,8 @@ static void candle_draw_text(
     int32_t height,
     lv_color_t color,
     lv_text_align_t align,
-    const lv_font_t *font
+    const lv_font_t *font,
+    bool isBold
 ) {
     if(width <= 0 || height <= 0)
         return;
@@ -241,6 +242,13 @@ static void candle_draw_text(
     };
 
     lv_draw_label(layer, &dsc, &area);
+
+    if (isBold) {
+        /* Fake bold: draw again shifted by 1 px */
+        area.x1 += 1;
+        area.x2 += 1;
+        lv_draw_label(layer, &dsc, &area);
+    }
 }
 
 
@@ -528,7 +536,8 @@ bool candle_stick_day_daw(
             axis_font_height + 2,
             lv_color_hex(CANDLE_COLOR_AXIS),
             LV_TEXT_ALIGN_RIGHT,
-            CANDLE_AXIS_FONT
+            CANDLE_AXIS_FONT,
+            false
         );
     }
 
@@ -716,7 +725,8 @@ bool candle_stick_day_daw(
         annotation_font_height + 2,
         candle_color,
         LV_TEXT_ALIGN_RIGHT,
-        CANDLE_ANNOTATION_FONT
+        CANDLE_ANNOTATION_FONT,
+        true
     );
 
 
@@ -733,10 +743,11 @@ bool candle_stick_day_daw(
         annotation_font_height + 2,
         candle_color,
         LV_TEXT_ALIGN_LEFT,
-        CANDLE_ANNOTATION_FONT
+        CANDLE_ANNOTATION_FONT,
+        true
     );
 
-    
+
     /* ---------------------------------------------
      * Finish canvas drawing
      * --------------------------------------------- */
