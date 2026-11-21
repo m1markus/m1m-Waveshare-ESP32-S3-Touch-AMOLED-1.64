@@ -111,6 +111,8 @@ void httpGetBtcQuoteFromBinance() {
     return;
   }
 
+  bool executeQueueSend = true;
+
   Serial.println();
   Serial.println("Starting HTTP GET request...");
   Serial.print("URL: ");
@@ -167,23 +169,37 @@ void httpGetBtcQuoteFromBinance() {
     snprintf(uiCommandItem.timeAt, sizeof(uiCommandItem.timeAt), "%s", currTime);
 
     const char* pszPrice = doc["lastPrice"];
+    if (pszPrice == NULL) {
+        executeQueueSend = false;
+    }
     int32_t nPrice = getIntPartFromPrice(pszPrice);
     uiCommandItem.candleChartData.priceClose = nPrice;      // store the actual price in the closing field
 
     pszPrice = doc["openPrice"];
+    if (pszPrice == NULL) {
+        executeQueueSend = false;
+    }
     nPrice = getIntPartFromPrice(pszPrice);
     uiCommandItem.candleChartData.priceOpen = nPrice;
 
     pszPrice = doc["highPrice"];
+    if (pszPrice == NULL) {
+        executeQueueSend = false;
+    }
     nPrice = getIntPartFromPrice(pszPrice);
     uiCommandItem.candleChartData.priceHight = nPrice;
 
     pszPrice = doc["lowPrice"];
+    if (pszPrice == NULL) {
+        executeQueueSend = false;
+    }
     nPrice = getIntPartFromPrice(pszPrice);
     uiCommandItem.candleChartData.priceLow = nPrice;
 
     // overwrite a possible existing queue entry
-    xQueueGenericSend(uiCommandQueue, &uiCommandItem, 0, queueOVERWRITE);
+    if (executeQueueSend) {
+        xQueueGenericSend(uiCommandQueue, &uiCommandItem, 0, queueOVERWRITE);
+    }
 
   } else {
     Serial.print("HTTP POST failed. Error: ");
@@ -219,15 +235,29 @@ void user_setup(void) {
 
     xTaskCreate(vTaskBinance,       /* Function that implements the task. */
                 "vTaskBinance",     /* Text name for the task. */
-                8192,               /* Stack size in words, not bytes. */
+                16*1024,            /* Stack size in words, not bytes. */
                 (void *) 0,         /* Parameter passed into the task. */
                 tskIDLE_PRIORITY,   /* Priority at which the task is created. */
                 NULL); 
 }
 
 
+void esp_debug() {
+    Serial.printf("heap free=%u minfree=%u maxblock=%u stackHW=%u\n",
+        ESP.getFreeHeap(), ESP.getMinFreeHeap(),
+        heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
+        uxTaskGetStackHighWaterMark(NULL));
+
+    lv_mem_monitor_t mon; lv_mem_monitor(&mon);
+    Serial.printf("lvgl free=%u biggest=%u frag=%u%%\n",
+        mon.free_size, mon.free_biggest_size, mon.frag_pct);
+}
+
+
 void user_loop(void) {
-    //Serial.println("myApp user_loop");
+    Serial.println("myApp user_loop");
+
+    esp_debug();
 
     UiCommandItem receivedItem;
 
@@ -252,3 +282,5 @@ void user_loop(void) {
         candle_stick_day_daw(ui_CanvasCandleDayChart, &(receivedItem.candleChartData));
     }
 }
+
+// ESP.restart()
