@@ -146,6 +146,7 @@ void setup()
     // Only this program speaks on the serial port: ESP-IDF's own messages are off.
     esp_log_level_set("*", ESP_LOG_NONE);
     Serial.begin(115200);
+    Serial.setTxTimeoutMs(0);
     #if ARDUINO_USB_CDC_ON_BOOT && ESP_ARDUINO_VERSION_MAJOR >= 3
     // Serial is the chip's own USB. With a PC attached and nothing reading
     // the port, every print would wait for it - and so would the UI. A
