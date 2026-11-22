@@ -14,3 +14,7 @@ GND	                        Common ground	    GND
 
 Important: GPIO5, GPIO6 and GPIO7 are the ESP32-S3 sender pins. GPIO26, GPIO25 and GPIO22 are the classic ESP32 receiver pins in the sketches below. Connect the boards' grounds together. Do not connect either board's 5 V pin to the other's 3.3 V pin; power each board from its own USB connection while testing.
 
+
+hardware:
+
+MAX98357A i2s verstärker
