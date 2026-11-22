@@ -20,6 +20,9 @@ const char* API_URL = "https://api.binance.com/api/v3/ticker/tradingDay?symbol=B
 
 QueueHandle_t uiCommandQueue;
 
+static WiFiClientSecure secureClient;      // einmal anlegen, nicht pro Abfrage
+volatile uint32_t lastOkMs = 0;
+
 
 void connectWiFi() {
 
@@ -31,7 +34,13 @@ void connectWiFi() {
   Serial.print("Connecting to Wi-Fi: ");
   Serial.println(WIFI_SSID);
 
+  WiFi.disconnect();
   WiFi.mode(WIFI_STA);
+  WiFi.onEvent([](arduino_event_id_t e, arduino_event_info_t info) {
+    if (e == ARDUINO_EVENT_WIFI_STA_DISCONNECTED) {
+        Serial.printf("ERROR: WiFi disconnected, reason=%d\n", info.wifi_sta_disconnected.reason);
+    }
+  });
   WiFi.begin(WIFI_SSID, WIFI_PASS);
 
   int retryCount = 0;
@@ -105,119 +114,78 @@ int32_t getIntPartFromPrice(const char *pszPrice) {
 }
 
 
-void httpGetBtcQuoteFromBinance() {
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("Wi-Fi is not connected.");
-    return;
-  }
+bool httpGetBtcQuoteFromBinance() {
+  Serial.println("Query Binance API");
+  if (WiFi.status() != WL_CONNECTED) return false;
 
-  bool executeQueueSend = true;
-
-  Serial.println();
-  Serial.println("Starting HTTP GET request...");
-  Serial.print("URL: ");
-  Serial.println(API_URL);
-  Serial.println();
-
-  WiFiClientSecure client;
-  client.setInsecure();
+  secureClient.setInsecure();
 
   HTTPClient http;
-  bool beginResult = http.begin(client, API_URL);
-
-  if (!beginResult) {
-    Serial.println("HTTPClient begin failed.");
-    return;
-  }
-
+  http.setReuse(true);                     // Verbindung wiederverwenden
+  http.setConnectTimeout(5000);
   http.setTimeout(10000);
   http.addHeader("Content-Type", "application/json");
 
-  int httpCode = http.GET();
+  if (!http.begin(secureClient, API_URL)) return false;
 
-  Serial.print("HTTP status code: ");
-  Serial.println(httpCode);
+  bool ok = false;
+  int httpCode = http.GET();
 
   if (httpCode == HTTP_CODE_OK) {
     String payload = http.getString();
-
     Serial.println("---- Response Body ----");
     Serial.println(payload);
-
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, payload);
 
-    if (error) {
-        Serial.print("Response JSON parse failed: ");
-        Serial.println(error.c_str());
-        return;
+    if (deserializeJson(doc, payload) == DeserializationError::Ok) {
+      const char* last = doc["lastPrice"];
+      const char* open = doc["openPrice"];
+      const char* high = doc["highPrice"];
+      const char* low  = doc["lowPrice"];
+
+      if (last && open && high && low) {            // NULL-Schutz
+        UiCommandItem item;
+        memset(&item, 0, sizeof(item));
+        item.uiCommand = 1;
+
+        char currTime[32] = "--";                   // initialisiert
+        get_current_time(currTime, sizeof(currTime));
+
+        int32_t nLast = getIntPartFromPrice(last);
+        snprintf(item.price, sizeof(item.price), "USD %ld", (long)nLast);
+        snprintf(item.timeAt, sizeof(item.timeAt), "%s", currTime);
+        item.candleChartData.priceClose = nLast;
+        item.candleChartData.priceOpen  = getIntPartFromPrice(open);
+        item.candleChartData.priceHight = getIntPartFromPrice(high);
+        item.candleChartData.priceLow   = getIntPartFromPrice(low);
+
+        xQueueGenericSend(uiCommandQueue, &item, 0, queueOVERWRITE);
+        ok = true;
+      } else {
+        Serial.println("ERROR: JSON response not as expected");
+      }
     }
-
-    const char* btcPriceUsd = doc["lastPrice"];
-    char btcPriceRounded[50];
-    get_first_part(btcPriceUsd, '.', btcPriceRounded);
-
-    Serial.printf("BTC USD price: %s", btcPriceRounded);
-    Serial.println("");
-
-    char currTime[32];
-    get_current_time(currTime, sizeof(currTime));
-
-    UiCommandItem uiCommandItem;
-    uiCommandItem.uiCommand = 1;
-    snprintf(uiCommandItem.price, sizeof(uiCommandItem.price), "USD %s", btcPriceRounded);
-    snprintf(uiCommandItem.timeAt, sizeof(uiCommandItem.timeAt), "%s", currTime);
-
-    const char* pszPrice = doc["lastPrice"];
-    if (pszPrice == NULL) {
-        executeQueueSend = false;
-    }
-    int32_t nPrice = getIntPartFromPrice(pszPrice);
-    uiCommandItem.candleChartData.priceClose = nPrice;      // store the actual price in the closing field
-
-    pszPrice = doc["openPrice"];
-    if (pszPrice == NULL) {
-        executeQueueSend = false;
-    }
-    nPrice = getIntPartFromPrice(pszPrice);
-    uiCommandItem.candleChartData.priceOpen = nPrice;
-
-    pszPrice = doc["highPrice"];
-    if (pszPrice == NULL) {
-        executeQueueSend = false;
-    }
-    nPrice = getIntPartFromPrice(pszPrice);
-    uiCommandItem.candleChartData.priceHight = nPrice;
-
-    pszPrice = doc["lowPrice"];
-    if (pszPrice == NULL) {
-        executeQueueSend = false;
-    }
-    nPrice = getIntPartFromPrice(pszPrice);
-    uiCommandItem.candleChartData.priceLow = nPrice;
-
-    // overwrite a possible existing queue entry
-    if (executeQueueSend) {
-        xQueueGenericSend(uiCommandQueue, &uiCommandItem, 0, queueOVERWRITE);
-    }
-
   } else {
-    Serial.print("HTTP POST failed. Error: ");
-    Serial.println(http.errorToString(httpCode));
+    Serial.printf("ERROR: HTTP GET failed: %d %s\n", httpCode,
+                  http.errorToString(httpCode).c_str());
   }
 
-  http.end();
+  http.end();                                       // immer, auch bei Fehlern
+  return ok;
 }
 
 
 void vTaskBinance(void * notUsed) {
-    const TickType_t xDelay = 15000 / portTICK_PERIOD_MS;
-    for( ;; ) {
-        connectWiFi();
-        Serial.println("Query Binance API");
-        httpGetBtcQuoteFromBinance();
-        vTaskDelay(xDelay);
+  const TickType_t xDelay = pdMS_TO_TICKS(15000);
+  for (;;) {
+    connectWiFi();
+    if (httpGetBtcQuoteFromBinance()) {
+      lastOkMs = millis();
+    } else {
+      secureClient.stop();                          // sauberer Neustart der TLS-Verbindung
     }
+    vTaskDelay(xDelay);
+  }
 }
 
 
@@ -243,10 +211,11 @@ void user_setup(void) {
 
 
 void esp_debug() {
-    Serial.printf("heap free=%u minfree=%u maxblock=%u stackHW=%u\n",
-        ESP.getFreeHeap(), ESP.getMinFreeHeap(),
-        heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
-        uxTaskGetStackHighWaterMark(NULL));
+
+    Serial.printf("[%s] up=%lus int_free=%u int_maxblock=%u stackHW=%u rssi=%d lastOk=%lus\n",
+        pcTaskGetName(NULL), millis()/1000, ESP.getFreeHeap(),
+        (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT),
+        uxTaskGetStackHighWaterMark(NULL), WiFi.RSSI(), (millis()-lastOkMs)/1000);
 
     lv_mem_monitor_t mon; lv_mem_monitor(&mon);
     Serial.printf("lvgl free=%u biggest=%u frag=%u%%\n",
@@ -255,9 +224,13 @@ void esp_debug() {
 
 
 void user_loop(void) {
-    Serial.println("myApp user_loop");
+    //Serial.println("myApp user_loop");
 
-    esp_debug();
+    static uint32_t lastDbg = 0;
+    if (millis() - lastDbg > 10000) {
+        lastDbg = millis();
+        esp_debug();
+    }
 
     UiCommandItem receivedItem;
 
@@ -284,3 +257,4 @@ void user_loop(void) {
 }
 
 // ESP.restart()
+// esp_reset_reason()
