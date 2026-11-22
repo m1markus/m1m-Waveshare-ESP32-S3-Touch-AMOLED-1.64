@@ -18,3 +18,4 @@ Important: GPIO5, GPIO6 and GPIO7 are the ESP32-S3 sender pins. GPIO26, GPIO25 a
 hardware:
 
 MAX98357A i2s verstärker
+WS2812B LED Strip (black)
