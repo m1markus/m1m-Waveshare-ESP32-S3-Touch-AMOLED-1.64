@@ -18,4 +18,23 @@ Important: GPIO5, GPIO6 and GPIO7 are the ESP32-S3 sender pins. GPIO26, GPIO25 a
 hardware:
 
 MAX98357A i2s verstärker
+
 WS2812B LED Strip (black)
+WS2812B - 144LED/m LED NeoPixel Strip
+MeanWell Power Supply Switch Mode 5V 110W
+
+WaveShare 4 IPS Touchscreen: 720x720
+
+
+WaveShare 7,9 IPS Touch-Display
+WaveShare 11.9 kapazitives Touch Display für Raspberry Pi, 320×1480
+
+
+Pimoroni Presto
+ESP32 S31 Touch LCD 4.3C box
+ESP32-P4-WIFI6 3.5inch Smart Vision Development Board, 320 × 480
+
+
+
+https://www.berrybase.ch/
+

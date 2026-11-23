@@ -49,6 +49,10 @@ Arduino lib directory: /Users/mue/Documents/Arduino/libraries
 
 [FreeRTOS Documentation](https://www.freertos.org/Documentation/00-Overview)
 
+### LVGL simulator
+
+[VSCode LVGL simulator project](https://github.com/lvgl/lv_port_pc_vscode)
+
 ### Arduino CLI
 
 #### Compile
